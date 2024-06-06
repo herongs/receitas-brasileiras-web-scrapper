@@ -6,11 +6,15 @@ module.exports = {
   async search(searchStr) {
     searchStr = searchStr.replace(/ /g, '+');
     let res;
-    await request.searchRecipes(searchStr)
-      .then((resp) => {
-        res = scrapper.parseRecipesList(resp);
-      })
-      .catch((err) => err);
+
+    try {
+      const resp = await request.searchRecipes(searchStr);
+
+      res = scrapper.parseRecipesList(resp);
+    } catch (err) {
+      console.error('Error:', err);
+    }
+
     return res;
   },
 };
