@@ -14,6 +14,17 @@ app.get('/busca/:name', (req, res) => {
 
 });
 
+app.get('/busca', (req, res) => {
+  service.searchAll()
+    .then((resp) => {
+      res.json(resp);
+    })
+    .catch((err) => {
+      res.status(err.code).json({ error: err.message });
+    });
+
+});
+
 let port = process.env.PORT;
 if (port == null || port === '') {
   port = 3001;

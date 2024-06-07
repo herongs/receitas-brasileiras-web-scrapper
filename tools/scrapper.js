@@ -10,12 +10,11 @@ module.exports = {
       if (responseObject.results && responseObject.results.length > 0 && responseObject.results[0].hits) {
         const hits = responseObject.results[0].hits
 
+        console.log('hits:', hits)
+
         const receitas = [];
         hits.forEach((hit) => {
           const receita = {
-            title: hit.document.title,
-            description: hit.document.description,
-            ingredients: hit.document.ingredients,
             trackback: hit.document.trackback,
           };
           receitas.push(receita);
@@ -33,6 +32,5 @@ module.exports = {
       console.error('Erro ao analisar resposta:', error);
       return [];
     }
-  }
-
+  },
 };
