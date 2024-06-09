@@ -144,7 +144,7 @@ module.exports = {
 
         const trackback = allTrackbacks[i].trackback;
         const url = `${constants.tg_base_url}${trackback}`;
-        const fileName  = trackback.split("/")[2] + ".json";
+        const fileName = trackback.split("/")[2] + ".json";
 
         console.log(`URL: ${url}`);
         const page = await browser.newPage();
@@ -155,7 +155,7 @@ module.exports = {
 
         const recipe = await page.evaluate((fileName) => {
           const recipeList = [];
-        
+
           const recipeElements = document.querySelectorAll(".psB1-oM");
           recipeElements.forEach((element) => {
             recipeList.push(element.innerText);
@@ -164,8 +164,13 @@ module.exports = {
           const ingredients = recipeList[2].split("\n").slice(1);
           const prepare_mode = recipeList[4].split("\n").slice(1);
 
+          const titleFull = document.querySelector(
+            ".headerRecipeImage h1"
+          ).innerText;
+
           const recipeJson = {
-            title: fileName,
+            title: titleFull,
+            trackback: fileName,
             description: recipeList[0],
             ingredients: ingredients,
             prepare_mode: prepare_mode,
@@ -174,7 +179,7 @@ module.exports = {
         }, JSON.stringify(fileName));
 
         allRecipes.push(recipe);
-        
+
         await page.close();
       }
 
@@ -184,7 +189,7 @@ module.exports = {
     } finally {
       const timestamp = new Date().toISOString().replace(/:/g, "-");
       const filename = `all_recipes_${timestamp}_${uuidv4()}.json`;
-      const folderPath = path.join(__dirname, "..", "recipes");
+      const folderPath = path.join(__dirname, "..", "receitas");
       const filePath = path.join(folderPath, filename);
 
       if (!fs.existsSync(folderPath)) {
@@ -193,7 +198,7 @@ module.exports = {
 
       fs.writeFileSync(filePath, JSON.stringify(allRecipes));
     }
-    
+
     return "All recipes done!";
   },
 };
