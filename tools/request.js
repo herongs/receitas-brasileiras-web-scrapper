@@ -48,7 +48,7 @@ module.exports = {
   },
 
   async searchAllRecipes() {
-    const totalPages = 5;
+    const totalPages = 210;
     const allTrackbacks = [];
 
     try {
@@ -64,21 +64,28 @@ module.exports = {
         let lastInterceptedBody = null;
 
         page.on("request", (request) => {
+          if (
+            request.resourceType() === "xhr" ||
+            request.resourceType() === "fetch"
+          ) {
+            console.log(`Intercepted request to: ${request.url()}`);
+          }
           request.continue();
         });
 
         page.on("response", async (response) => {
-          if (
-            response.request().resourceType() === "xhr" ||
-            response.request().resourceType() === "fetch"
-          ) {
-            const body = await response.text();
-            lastInterceptedBody = body;
+          if (response.request().url().includes("/multi_search")) {
+            try {
+              const body = await response.text();
+              lastInterceptedBody = body;
+            } catch (error) {
+              console.error(`Error reading response body: ${error}`);
+            }
           }
         });
 
         await page.goto(url);
-        await new Promise((resolve) => setTimeout(resolve, 7000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         await browser.close();
 
         let parseLastInterceptedBody = JSON.parse(lastInterceptedBody);
@@ -112,17 +119,81 @@ module.exports = {
       const filename = `all_trackbacks_${timestamp}_${uuidv4()}.json`;
       const folderPath = path.join(__dirname, "..", "trackbacks");
       const filePath = path.join(folderPath, filename);
-  
+
       if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath);
       }
-  
+
       fs.writeFileSync(filePath, JSON.stringify(allTrackbacks));
 
       console.log("Data saved to:", filename);
     }
 
-
     return allTrackbacks;
+  },
+
+  async searchRecipesIndividual() {
+    const allTrackbacks = require("../trackbacks/01_all_trackbacks_2024-06-09T20-53-29.559Z_28ae4178-801b-4e2f-b527-fc5e7d751b7a.json");
+    const allRecipes = [];
+
+    try {
+      const browser = await puppeteer.launch();
+
+      for (let i = 0; i < allTrackbacks.length; i++) {
+        console.log(`Processing recipe ${i + 1} of ${allTrackbacks.length}`);
+
+        const trackback = allTrackbacks[i].trackback;
+        const url = `${constants.tg_base_url}${trackback}`;
+        const fileName  = trackback.split("/")[2] + ".json";
+
+        console.log(`URL: ${url}`);
+        const page = await browser.newPage();
+
+        await page.goto(url);
+
+        await page.setViewport({ width: 1920, height: 1080 });
+
+        const recipe = await page.evaluate((fileName) => {
+          const recipeList = [];
+        
+          const recipeElements = document.querySelectorAll(".psB1-oM");
+          recipeElements.forEach((element) => {
+            recipeList.push(element.innerText);
+          });
+
+          const ingredients = recipeList[2].split("\n").slice(1);
+          const prepare_mode = recipeList[4].split("\n").slice(1);
+
+          const recipeJson = {
+            title: fileName,
+            description: recipeList[0],
+            ingredients: ingredients,
+            prepare_mode: prepare_mode,
+          };
+          return recipeJson;
+        }, JSON.stringify(fileName));
+
+        allRecipes.push(recipe);
+        
+        await page.close();
+      }
+
+      await browser.close();
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      const timestamp = new Date().toISOString().replace(/:/g, "-");
+      const filename = `all_recipes_${timestamp}_${uuidv4()}.json`;
+      const folderPath = path.join(__dirname, "..", "recipes");
+      const filePath = path.join(folderPath, filename);
+
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath);
+      }
+
+      fs.writeFileSync(filePath, JSON.stringify(allRecipes));
+    }
+    
+    return "All recipes done!";
   },
 };

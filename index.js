@@ -22,7 +22,17 @@ app.get('/busca', (req, res) => {
     .catch((err) => {
       res.status(err.code).json({ error: err.message });
     });
+});
 
+
+app.get('/receitas', (req, res) => {
+  service.searchRecipesIndividual()
+    .then((resp) => {
+      res.json(resp);
+    })
+    .catch((err) => {
+      res.status(err.code).json({ error: err.message });
+    });
 });
 
 let port = process.env.PORT;
