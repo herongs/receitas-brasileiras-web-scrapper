@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-    <b>This project is a web scraper developed in Node.js that collects recipes from an online recipe website. The goal is to automate the extraction of data such as ingredients, preparation method, cooking time, and other relevant information from various recipes.</b>
+    <b>This project is a web scraper developed in Node.js that collects recipes from Panelinha.com.br. The goal is to automate the extraction of data such as ingredients, preparation method, cooking time, and other relevant information from various recipes.</b>
 </p>
 
 <h2 id="technologies">💻 Technologies</h2>
