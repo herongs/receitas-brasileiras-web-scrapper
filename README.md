@@ -42,11 +42,11 @@ npm start
 
 <h2 id="routes">📍 API Endpoints</h2>
 ​
-| route               | description                                          
-|----------------------|-----------------------------------------------------
-| <kbd>GET /busca/{ingredient-name} </kbd>     | retrieves trackbacks of recipes referring to the desired ingredient  [response details](#get-auth-detail)
-| <kbd>GET /busca </kbd>     | retrieves all the trackbacks of recipes  [response details](#get-auth-detail)
-| <kbd>GET /receitas</kbd>     | retrieves revenue for trackbacks that were collected  [request details](#post-auth-detail)
+| Route                          | Description                                                               |
+|--------------------------------|---------------------------------------------------------------------------|
+| **GET /busca/{ingredient-name}** | Retrieves trackbacks of recipes referring to the desired ingredient. [response details](#get-auth-detail) |
+| **GET /busca**                 | Retrieves all the trackbacks of recipes. [response details](#get-auth-detail) |
+| **GET /receitas**              | Retrieves revenue for trackbacks that were collected. [request details](#post-auth-detail) |
 
 <h3 id="get-auth-detail">GET /busca/abacate</h3>
 
