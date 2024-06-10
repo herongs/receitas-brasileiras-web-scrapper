@@ -48,7 +48,16 @@ npm start
 | **GET /busca**                 | Retrieves all the trackbacks of recipes. [response details](#get-auth-detail) |
 | **GET /receitas**              | Retrieves revenue for trackbacks that were collected. [request details](#post-auth-detail) |
 
-<h3 id="get-auth-detail">GET /busca/abacate</h3>
+
+Here you can list the main routes of your API, and what are their expected request bodies.
+​
+| route               | description                                          
+|----------------------|-----------------------------------------------------
+| <kbd>GET /busca/{ingredient-name}</kbd>     | retrieves trackbacks of recipes referring to the desired ingredient [response details](#get-busca-ingredientes)
+| <kbd>GET /busca</kbd>     | retrieves all the trackbacks of recipes [request details](#get-busca) 
+| <kbd>GET /receitas </kbd>     |  retrieves revenue for trackbacks that were collected [request details](#get-receitas) 
+
+<h3 id="get-busca-ingredientes">GET /busca/abacate</h3>
 
 **RESPONSE**
 ```json
@@ -60,7 +69,7 @@ npm start
   },
 ```
 
-<h3 id="post-auth-detail">GET /busca</h3>
+<h3 id="get-busca">GET /busca</h3>
 
 **RESPONSE**
 ```json
@@ -72,6 +81,8 @@ npm start
   },
 ```
 
+<h3 id="receitas">GET /receitas</h3>
+
 **RESPONSE**
 ```json
 [
@@ -80,7 +91,6 @@ npm start
         "trackback": "\"macarrao-gratinado-com-espinafre.json\"",
         "description": "Esta receita é um upgrade do clássico mac and cheese, o macarrão gratinado com queijo. Nesta versão, ele é preparado com um clássico europeu, o queijo francês                    mimolette, de cor laranja intensa e ligeiramente salgadinho, e espinafre. O toque final fica com a farofinha crocante.",
         "ingredients": [
-            "INGREDIENTES",
             "1½ xícara (chá) de queijo francês mimolette ralado grosso",
             "1½ xícara (chá) de folha de espinafre",
             "3 xícaras (chá) de leite gelado",
