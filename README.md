@@ -22,10 +22,9 @@
 
 <h3>Prerequisites</h3>
 
-Here you list all prerequisites necessary for running your project. For example:
+Necessary requirements to run the project
 
 - [NodeJS](https://github.com/)
-- [Git 2](https://github.com)
 
 <h3>Cloning</h3>
 
