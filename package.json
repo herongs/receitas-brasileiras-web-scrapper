@@ -4,12 +4,9 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "cheerio": "^1.0.0-rc.12",
     "express": "^4.17.1",
-    "jsdom": "^16.4.0",
     "nodemon": "^2.0.6",
-    "puppeteer": "^22.10.0",
-    "uuid": "^9.0.1"
+    "puppeteer": "^22.10.0"
   },
   "devDependencies": {
     "eslint": "^7.17.0",

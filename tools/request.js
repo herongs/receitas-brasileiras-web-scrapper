@@ -4,7 +4,6 @@ const constants = require("../route");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
-const { v4: uuidv4 } = require("uuid");
 
 module.exports = {
   async searchRecipes(searchStr) {
@@ -40,7 +39,7 @@ module.exports = {
     await page.goto(url);
 
     // Mantenha o navegador aberto por algum tempo para observar as requisições
-    await new Promise((resolve) => setTimeout(resolve, 30000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await browser.close();
 
@@ -116,7 +115,7 @@ module.exports = {
       console.log("Error occurred:", error);
     } finally {
       const timestamp = new Date().toISOString().replace(/:/g, "-");
-      const filename = `all_trackbacks_${timestamp}_${uuidv4()}.json`;
+      const filename = `trackbacks_${timestamp}.json`;
       const folderPath = path.join(__dirname, "..", "trackbacks");
       const filePath = path.join(folderPath, filename);
 
@@ -133,8 +132,20 @@ module.exports = {
   },
 
   async searchRecipesIndividual() {
-    const allTrackbacks = require("../trackbacks/01_all_trackbacks_2024-06-09T20-53-29.559Z_28ae4178-801b-4e2f-b527-fc5e7d751b7a.json");
+    const folderPath = path.join(__dirname, "..", "trackbacks");
+    const files = fs.readdirSync(folderPath);
+    const latestFile = files.reduce((latest, file) => {
+      const fileTimestamp = file.match(/trackbacks_(.*).json/)[1];
+      if (!latest || fileTimestamp > latest) {
+      return fileTimestamp;
+      }
+      return latest;
+    }, null);
+
+    const allTrackbacksPath = path.join(folderPath, `trackbacks_${latestFile}.json`);
+    const allTrackbacks = JSON.parse(fs.readFileSync(allTrackbacksPath, 'utf8'));
     const allRecipes = [];
+
 
     try {
       const browser = await puppeteer.launch();
@@ -143,8 +154,14 @@ module.exports = {
         console.log(`Processing recipe ${i + 1} of ${allTrackbacks.length}`);
 
         const trackback = allTrackbacks[i].trackback;
+
         const url = `${constants.tg_base_url}${trackback}`;
         const fileName = trackback.split("/")[2] + ".json";
+
+        if (!trackback.startsWith("/receita")) {
+          console.log(`Invalid trackback: ${trackback}`);
+          continue;
+        }
 
         console.log(`URL: ${url}`);
         const page = await browser.newPage();
@@ -157,6 +174,7 @@ module.exports = {
           const recipeList = [];
 
           const recipeElements = document.querySelectorAll(".psB1-oM");
+
           recipeElements.forEach((element) => {
             recipeList.push(element.innerText);
           });
@@ -188,7 +206,7 @@ module.exports = {
       console.error("Error:", error);
     } finally {
       const timestamp = new Date().toISOString().replace(/:/g, "-");
-      const filename = `all_recipes_${timestamp}_${uuidv4()}.json`;
+      const filename = `all_recipes_${timestamp}.json`;
       const folderPath = path.join(__dirname, "..", "receitas");
       const filePath = path.join(folderPath, filename);
 
@@ -199,6 +217,6 @@ module.exports = {
       fs.writeFileSync(filePath, JSON.stringify(allRecipes));
     }
 
-    return "All recipes done!";
+    return allRecipes;
   },
 };
