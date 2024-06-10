@@ -41,16 +41,7 @@ npm start
 ```
 
 <h2 id="routes">📍 API Endpoints</h2>
-​
-| Route                          | Description                                                               |
-|--------------------------------|---------------------------------------------------------------------------|
-| **GET /busca/{ingredient-name}** | Retrieves trackbacks of recipes referring to the desired ingredient. [response details](#get-auth-detail) |
-| **GET /busca**                 | Retrieves all the trackbacks of recipes. [response details](#get-auth-detail) |
-| **GET /receitas**              | Retrieves revenue for trackbacks that were collected. [request details](#post-auth-detail) |
 
-
-Here you can list the main routes of your API, and what are their expected request bodies.
-​
 | route               | description                                          
 |----------------------|-----------------------------------------------------
 | <kbd>GET /busca/{ingredient-name}</kbd>     | retrieves trackbacks of recipes referring to the desired ingredient [response details](#get-busca-ingredientes)
