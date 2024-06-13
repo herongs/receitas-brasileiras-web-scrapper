@@ -31,5 +31,15 @@ module.exports = {
       console.error("Error:", err);
     }
     return res;
+  },
+
+  async searchRecipesWithTrackbacks(param) {
+    let res;
+    try {
+      res = await request.searchRecipesWithTrackbacks(param);
+    } catch (err) {
+      console.error("Error:", err);
+    }
+    return res;
   }
 };

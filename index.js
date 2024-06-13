@@ -1,7 +1,8 @@
 const express = require('express');
+const service = require('./service');
+const bodyParser = require('body-parser')
 
 const app = express();
-const service = require('./service');
 
 app.get('/busca/:name', (req, res) => {
   service.search(req.params.name)
@@ -27,6 +28,18 @@ app.get('/busca', (req, res) => {
 
 app.get('/receitas', (req, res) => {
   service.searchRecipesIndividual()
+    .then((resp) => {
+      res.json(resp);
+    })
+    .catch((err) => {
+      res.status(err.code).json({ error: err.message });
+    });
+});
+
+
+app.use(bodyParser.json())
+app.post('/trackbacks', (req, res) => {
+  service.searchRecipesWithTrackbacks(req.body)
     .then((resp) => {
       res.json(resp);
     })
