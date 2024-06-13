@@ -6,44 +6,149 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = {
-  async searchRecipes(searchStr) {
-    const url = `${constants.tg_base_url}/busca?query=${searchStr}`;
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+  async searchRecipes(parametro) {
+    let totalPages = null;
+    const allTrackbacks = [];
 
-    await page.setRequestInterception(true);
+    try {
+      if (!totalPages) {
+        console.log("Getting total pages");
+        const url = `${constants.tg_base_url}/busca?query=${parametro}&page=1&configure%5BhitsPerPage%5D=20`;
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
 
-    let lastInterceptedBody = null;
+        await page.setRequestInterception(true);
 
-    page.on("request", (request) => {
-      if (
-        request.resourceType() === "xhr" ||
-        request.resourceType() === "fetch"
-      ) {
-        console.log(`Intercepted request to: ${request.url()}`);
+        let lastInterceptedBody = null;
+
+        page.on("request", (request) => {
+          if (
+            request.resourceType() === "xhr" ||
+            request.resourceType() === "fetch"
+          ) {
+            console.log(`Intercepted request to: ${request.url()}`);
+          }
+          request.continue();
+        });
+
+        page.on("response", async (response) => {
+          if (response.request().url().includes("/multi_search")) {
+            try {
+              const body = await response.text();
+              lastInterceptedBody = body;
+            } catch (error) {
+              console.error(`Error reading response body: ${error}`);
+            }
+          }
+        });
+
+        await page.goto(url);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        let parseLastInterceptedBody = JSON.parse(lastInterceptedBody);
+
+        if (
+          parseLastInterceptedBody.results &&
+          parseLastInterceptedBody.results.length > 0 &&
+          parseLastInterceptedBody.results[0].found
+        ) {
+          totalPages = Math.floor(
+            parseLastInterceptedBody.results[0].found / 12
+          );
+          let resto = parseLastInterceptedBody.results[0].found % 12;
+          if (resto > 0) {
+            totalPages += 1;
+          }
+        }
+
+        await browser.close();
       }
-      request.continue();
-    });
 
-    page.on("response", async (response) => {
-      if (
-        response.request().resourceType() === "xhr" ||
-        response.request().resourceType() === "fetch"
-      ) {
-        const body = await response.text();
-        lastInterceptedBody = body; // Armazena o corpo da última resposta interceptada
+      if (!totalPages) {
+        totalPages = 1;
       }
-    });
 
-    // Navegue para a página que você quer interceptar as requisições
-    await page.goto(url);
+      for (let searchPage = 1; searchPage <= totalPages; searchPage++) {
+        console.log(`Starting page ${searchPage}`);
 
-    // Mantenha o navegador aberto por algum tempo para observar as requisições
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+        const url = `${constants.tg_base_url}/busca?query=${parametro}&page=${searchPage}&configure%5BhitsPerPage%5D=20`;
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
 
-    await browser.close();
+        await page.setRequestInterception(true);
 
-    return lastInterceptedBody;
+        let lastInterceptedBody = null;
+
+        page.on("request", (request) => {
+          if (
+            request.resourceType() === "xhr" ||
+            request.resourceType() === "fetch"
+          ) {
+            console.log(`Intercepted request to: ${request.url()}`);
+          }
+          request.continue();
+        });
+
+        page.on("response", async (response) => {
+          if (response.request().url().includes("/multi_search")) {
+            try {
+              const body = await response.text();
+              lastInterceptedBody = body;
+            } catch (error) {
+              console.error(`Error reading response body: ${error}`);
+            }
+          }
+        });
+
+        await page.goto(url);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await browser.close();
+
+        let parseLastInterceptedBody = JSON.parse(lastInterceptedBody);
+
+        if (
+          parseLastInterceptedBody.results &&
+          parseLastInterceptedBody.results.length > 0 &&
+          parseLastInterceptedBody.results[0].hits
+        ) {
+          const hits = parseLastInterceptedBody.results[0].hits;
+
+          hits.forEach((hit) => {
+            const recipe = {
+              trackback: hit.document.trackback,
+            };
+
+            if (recipe.trackback.startsWith("/receita")) {
+              allTrackbacks.push(recipe);
+            }
+          });
+        } else {
+          console.error("Invalid structure:", responseObject);
+        }
+
+        console.log(`Page ${searchPage} done`);
+      }
+
+      console.log("Size of allTrackbacks:", allTrackbacks.length);
+      console.log("All pages done");
+    } catch (error) {
+      console.log("Error occurred:", error);
+    } finally {
+      const timestamp = new Date().toISOString().replace(/:/g, "-");
+      const filename = `trackbacks_${parametro}_${timestamp}.json`;
+      const folderPath = path.join(__dirname, "..", "trackbacks");
+      const filePath = path.join(folderPath, filename);
+
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath);
+      }
+
+      fs.writeFileSync(filePath, JSON.stringify(allTrackbacks));
+
+      console.log("Data saved to:", filename);
+    }
+
+    return allTrackbacks;
   },
 
   async searchAllRecipes() {
@@ -100,7 +205,9 @@ module.exports = {
             const recipe = {
               trackback: hit.document.trackback,
             };
-            allTrackbacks.push(recipe);
+            if (recipe.trackback.startsWith("/receita")) {
+              allTrackbacks.push(recipe);
+            }
           });
         } else {
           console.error("Invalid structure:", responseObject);
@@ -137,15 +244,19 @@ module.exports = {
     const latestFile = files.reduce((latest, file) => {
       const fileTimestamp = file.match(/trackbacks_(.*).json/)[1];
       if (!latest || fileTimestamp > latest) {
-      return fileTimestamp;
+        return fileTimestamp;
       }
       return latest;
     }, null);
 
-    const allTrackbacksPath = path.join(folderPath, `trackbacks_${latestFile}.json`);
-    const allTrackbacks = JSON.parse(fs.readFileSync(allTrackbacksPath, 'utf8'));
+    const allTrackbacksPath = path.join(
+      folderPath,
+      `trackbacks_${latestFile}.json`
+    );
+    const allTrackbacks = JSON.parse(
+      fs.readFileSync(allTrackbacksPath, "utf8")
+    );
     const allRecipes = [];
-
 
     try {
       const browser = await puppeteer.launch();
@@ -195,6 +306,100 @@ module.exports = {
           };
           return recipeJson;
         }, JSON.stringify(fileName));
+
+        allRecipes.push(recipe);
+
+        await page.close();
+      }
+
+      await browser.close();
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      const timestamp = new Date().toISOString().replace(/:/g, "-");
+      const filename = `all_recipes_${timestamp}.json`;
+      const folderPath = path.join(__dirname, "..", "receitas");
+      const filePath = path.join(folderPath, filename);
+
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath);
+      }
+
+      fs.writeFileSync(filePath, JSON.stringify(allRecipes));
+    }
+
+    return allRecipes;
+  },
+
+  async searchRecipesWithTrackbacks(trackbacks) {
+    const allTrackbacks = trackbacks;
+    const allRecipes = [];
+
+    try {
+      const browser = await puppeteer.launch();
+
+      for (let i = 0; i < allTrackbacks.length; i++) {
+        console.log(`Processing recipe ${i + 1} of ${allTrackbacks.length}`);
+
+        const trackback = allTrackbacks[i].trackback;
+
+        const url = `${constants.tg_base_url}${trackback}`;
+        const fileName = trackback.split("/")[2] + ".json";
+
+        if (!trackback.startsWith("/receita")) {
+          console.log(`Invalid trackback: ${trackback}`);
+          continue;
+        }
+
+        console.log(`URL: ${url}`);
+        const page = await browser.newPage();
+
+        await page.goto(url);
+
+        await page.setViewport({ width: 1920, height: 1080 });
+
+        const recipe = await page.evaluate((fileName) => {
+          const recipeList = [];
+
+          const recipeElements = document.querySelectorAll(".psB1-oM");
+
+          recipeElements.forEach((element) => {
+            recipeList.push(element.innerText);
+          });
+
+          const ingredients = recipeList[2].split("\n").slice(1);
+
+          // Function to clean the preparation mode by removing content after the first empty line
+          const cleanPreparationMode = (mode) => {
+            const modeLines = mode.split("\n").slice(1); // split into lines and skip the title line
+            const cleanedModeLines = [];
+
+            for (let line of modeLines) {
+              if (line.trim() === 'COMPRE O QUE VOCÊ PRECISA'  || line.trim() === "VEJA O VÍDEO" || line.trim().startsWith("VEJA ESTE E OUTROS PREPAROS")) {
+                break; // stop adding lines if an empty line is found
+              }
+              cleanedModeLines.push(line);
+            }
+
+            return cleanedModeLines;
+          };
+
+          const prepare_mode = cleanPreparationMode(recipeList[4]);
+
+          const titleFull = document.querySelector(
+            ".headerRecipeImage h1"
+          ).innerText;
+
+          const recipeJson = {
+            title: titleFull,
+            trackback: fileName,
+            description: recipeList[0],
+            ingredients: ingredients,
+            prepare_mode: prepare_mode,
+          };
+          return recipeJson;
+        }, JSON.stringify(fileName));
+
 
         allRecipes.push(recipe);
 
