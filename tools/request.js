@@ -368,15 +368,14 @@ module.exports = {
           });
 
           const ingredients = recipeList[2].split("\n").slice(1);
-
-          // Function to clean the preparation mode by removing content after the first empty line
+          
           const cleanPreparationMode = (mode) => {
-            const modeLines = mode.split("\n").slice(1); // split into lines and skip the title line
+            const modeLines = mode.split("\n").slice(1); 
             const cleanedModeLines = [];
 
             for (let line of modeLines) {
               if (line.trim() === 'COMPRE O QUE VOCÊ PRECISA'  || line.trim() === "VEJA O VÍDEO" || line.trim().startsWith("VEJA ESTE E OUTROS PREPAROS")) {
-                break; // stop adding lines if an empty line is found
+                break;
               }
               cleanedModeLines.push(line);
             }
