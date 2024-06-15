@@ -277,7 +277,9 @@ module.exports = {
         console.log(`URL: ${url}`);
         const page = await browser.newPage();
 
-        await page.goto(url, { timeout: 60000 });
+        await page.goto(url);
+
+        page.setDefaultNavigationTimeout(0)
 
         await page.setViewport({ width: 1920, height: 1080 });
 
@@ -350,8 +352,6 @@ module.exports = {
         const total_time = allTrackbacks[i].total_time ? allTrackbacks[i].total_time : "";
         const relevance = allTrackbacks[i].relavance ? allTrackbacks[i].relavance : "";
 
-        console.log(categories, recipe_yeld, total_time, relevance  );
-
         if (!trackback.startsWith("/receita")) {
           console.log(`Invalid trackback: ${trackback}`);
           continue;
@@ -361,6 +361,8 @@ module.exports = {
         const page = await browser.newPage();
 
         await page.goto(url);
+
+        page.setDefaultNavigationTimeout(0)
 
         await page.setViewport({ width: 1920, height: 1080 });
 
@@ -408,10 +410,6 @@ module.exports = {
           };
           return recipeJson;
         }, JSON.stringify(fileName), categories, JSON.stringify(recipe_yeld), JSON.stringify(total_time), JSON.stringify(relevance));
-
-
-        console.log(recipe)
-
         allRecipes.push(recipe);
 
         await page.close();
@@ -474,7 +472,7 @@ module.exports = {
         });
 
         await page.goto(url);
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         await browser.close();
 
         let parseLastInterceptedBody = JSON.parse(lastInterceptedBody);
