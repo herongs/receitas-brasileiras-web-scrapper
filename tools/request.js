@@ -277,7 +277,7 @@ module.exports = {
         console.log(`URL: ${url}`);
         const page = await browser.newPage();
 
-        await page.goto(url);
+        await page.goto(url, { timeout: 60000 });
 
         await page.setViewport({ width: 1920, height: 1080 });
 
@@ -345,6 +345,12 @@ module.exports = {
 
         const url = `${constants.tg_base_url}${trackback}`;
         const fileName = trackback.split("/")[2] + ".json";
+        const categories = allTrackbacks[i].categories ? allTrackbacks[i].categories : [];
+        const recipe_yeld = allTrackbacks[i].recipe_yeld ? allTrackbacks[i].recipe_yeld : "";
+        const total_time = allTrackbacks[i].total_time ? allTrackbacks[i].total_time : "";
+        const relevance = allTrackbacks[i].relavance ? allTrackbacks[i].relavance : "";
+
+        console.log(categories, recipe_yeld, total_time, relevance  );
 
         if (!trackback.startsWith("/receita")) {
           console.log(`Invalid trackback: ${trackback}`);
@@ -358,7 +364,7 @@ module.exports = {
 
         await page.setViewport({ width: 1920, height: 1080 });
 
-        const recipe = await page.evaluate((fileName) => {
+        const recipe = await page.evaluate((fileName, categories, recipe_yeld, total_time, relevance) => {
           const recipeList = [];
 
           const recipeElements = document.querySelectorAll(".psB1-oM");
@@ -392,13 +398,19 @@ module.exports = {
           const recipeJson = {
             title: titleFull,
             trackback: fileName,
+            categories: categories,
+            recipe_yeld: recipe_yeld,
+            total_time: total_time,
+            relevance: relevance,
             description: recipeList[0],
             ingredients: ingredients,
             prepare_mode: prepare_mode,
           };
           return recipeJson;
-        }, JSON.stringify(fileName));
+        }, JSON.stringify(fileName), categories, JSON.stringify(recipe_yeld), JSON.stringify(total_time), JSON.stringify(relevance));
 
+
+        console.log(recipe)
 
         allRecipes.push(recipe);
 
@@ -423,4 +435,97 @@ module.exports = {
 
     return allRecipes;
   },
+
+  async searchRecipesFullInformation() {
+    const totalPages = 210;
+    const allTrackbacks = [];
+
+    try {
+      for (let searchPage = 1; searchPage <= totalPages; searchPage++) {
+        console.log(`Starting page ${searchPage}`);
+
+        const url = `${constants.tg_base_url}/busca?query=&page=${searchPage}&configure%5BhitsPerPage%5D=20`;
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+
+        await page.setRequestInterception(true);
+
+        let lastInterceptedBody = null;
+
+        page.on("request", (request) => {
+          if (
+            request.resourceType() === "xhr" ||
+            request.resourceType() === "fetch"
+          ) {
+            console.log(`Intercepted request to: ${request.url()}`);
+          }
+          request.continue();
+        });
+
+        page.on("response", async (response) => {
+          if (response.request().url().includes("/multi_search")) {
+            try {
+              const body = await response.text();
+              lastInterceptedBody = body;
+            } catch (error) {
+              console.error(`Error reading response body: ${error}`);
+            }
+          }
+        });
+
+        await page.goto(url);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await browser.close();
+
+        let parseLastInterceptedBody = JSON.parse(lastInterceptedBody);
+
+        if (
+          parseLastInterceptedBody.results &&
+          parseLastInterceptedBody.results.length > 0 &&
+          parseLastInterceptedBody.results[0].hits
+        ) {
+          const hits = parseLastInterceptedBody.results[0].hits;
+
+          hits.forEach((hit) => {
+            const recipe = {
+              trackback: hit.document.trackback,
+              trackback: hit.document.trackback,
+              categories: hit.document.categories,
+              recipe_yeld: hit.document.recipe_yield_text,
+              total_time: hit.document.total_time_text,
+              relavance: hit.document.relevance,
+            };
+            if (recipe.trackback.startsWith("/receita")) {
+              allTrackbacks.push(recipe);
+            }
+          });
+        } else {
+          console.error("Invalid structure:", responseObject);
+        }
+
+        console.log(`Page ${searchPage} done`);
+      }
+
+      console.log("Size of allTrackbacks:", allTrackbacks.length);
+      console.log("All pages done");
+    } catch (error) {
+      console.log("Error occurred:", error);
+    } finally {
+      const timestamp = new Date().toISOString().replace(/:/g, "-");
+      const filename = `trackbacks_${timestamp}.json`;
+      const folderPath = path.join(__dirname, "..", "trackbacks");
+      const filePath = path.join(folderPath, filename);
+
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath);
+      }
+
+      fs.writeFileSync(filePath, JSON.stringify(allTrackbacks));
+
+      console.log("Data saved to:", filename);
+    }
+
+    return allTrackbacks;
+  },
+
 };

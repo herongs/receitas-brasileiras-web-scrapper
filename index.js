@@ -48,6 +48,19 @@ app.post('/trackbacks', (req, res) => {
     });
 });
 
+app.get('/busca-completa', (req, res) => {
+  service.searchAllInformation(req.params.name)
+    .then((resp) => {
+      res.json(resp);
+    })
+    .catch((err) => {
+      res.status(err.code).json({ error: err.message });
+    });
+
+});
+
+
+
 let port = process.env.PORT;
 if (port == null || port === '') {
   port = 3001;

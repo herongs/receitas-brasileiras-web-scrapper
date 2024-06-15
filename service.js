@@ -41,5 +41,15 @@ module.exports = {
       console.error("Error:", err);
     }
     return res;
-  }
+  },
+
+  async searchAllInformation() {
+    try {
+      res = await request.searchRecipesFullInformation();
+    } catch (err) {
+      console.error("Error:", err);
+    }
+    return res;
+  },
+
 };
