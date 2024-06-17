@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-    <b>This project is a web scraper developed in Node.js that collects recipes from Panelinha.com.br. The goal is to automate the extraction of data such as ingredients, preparation method, cooking time, and other relevant information from various recipes.</b>
+    <b>This project is a web scraper developed in Node.js with Puppeteer to collect recipes from Panelinha.com.br. The goal is to automate the extraction of data such as ingredients, preparation method, cooking time, and other relevant information from various recipes.</b>
 </p>
 
 <h2 id="technologies">💻 Technologies</h2>
@@ -45,9 +45,10 @@ npm start
 | route               | description                                          
 |----------------------|-----------------------------------------------------
 | <kbd>GET /busca/{ingredient-name}</kbd>     | retrieves trackbacks of recipes referring to the desired ingredient [response details](#get-busca-ingredientes)
-| <kbd>GET /busca</kbd>     | retrieves all the trackbacks of recipes [request details](#get-busca) 
+| <kbd>GET /busca</kbd>     | retrieves all the trackbacks of recipes [request details](#get-busca)
+| <kbd>GET /busca-completa</kbd>     | retrieves all the trackbacks of recipes with more information [request details](#get-busca) 
 | <kbd>GET /receitas </kbd>     |  retrieves revenue for trackbacks that were collected [request details](#get-receitas) 
-| <kbd>GET /trackbacks </kbd>     |  recovers revenue from the return of collected trackbacks [request details](#post-trackbacks) 
+| <kbd>POST /trackbacks </kbd>     |  recovers revenue from the return of collected trackbacks [request details](#post-trackbacks) 
 
 <h3 id="get-busca-ingredientes">GET /busca/abacate</h3>
 
@@ -73,6 +74,19 @@ npm start
   },
 ```
 
+<h3 id="get-busca">GET /busca-completa</h3>
+
+**RESPONSE**
+```json
+    {
+       "trackback":"/receita/cocotte-de-cogumelos",
+       "categories":["Café da manhã","Entradas","Pratos principais","Para um","Ovo","Micro-ondas"],
+       "recipe_yeld":"Até 2 porções",
+       "total_time":"Pá-Pum",
+       "relavance":2
+     }
+```
+
 <h3 id="receitas">GET /receitas</h3>
 
 **RESPONSE**
@@ -81,7 +95,8 @@ npm start
     {
         "title": "MACARRÃO GRATINADO COM ESPINAFRE",
         "trackback": "\"macarrao-gratinado-com-espinafre.json\"",
-        "description": "Esta receita é um upgrade do clássico mac and cheese, o macarrão gratinado com queijo. Nesta versão, ele é preparado com um clássico europeu, o queijo francês                    mimolette, de cor laranja intensa e ligeiramente salgadinho, e espinafre. O toque final fica com a farofinha crocante.",
+        "description": "Esta receita é um upgrade do clássico mac and cheese, o macarrão gratinado com queijo. Nesta versão, ele é preparado com um clássico europeu, o queijo francês mimolette, de cor laranja intensa e                   
+         ligeiramente salgadinho, e espinafre. O toque final fica com a farofinha crocante.",
         "ingredients": [
             "1½ xícara (chá) de queijo francês mimolette ralado grosso",
             "1½ xícara (chá) de folha de espinafre",
@@ -119,7 +134,8 @@ npm start
 {
     "title": "ESTROGONOFE PARA DOIS",
     "trackback": "\"estrogonofe-para-dois.json\"",
-    "description": "Um estrogonofe quentinho, servido com arroz e batata palha, é daqueles pratos que fazem a gente se sentir em casa. E quem disse que ele não pode ser servido em um jantar romântico? Nesta versão, o filé mignon é substituído por miolo de alcatra, e dois ingredientes especiais fazem toda a diferença: creme de leite e cogumelo-de-paris frescos.",
+    "description": "Um estrogonofe quentinho, servido com arroz e batata palha, é daqueles pratos que fazem a gente se sentir em casa. E quem disse que ele não pode ser servido em um jantar romântico? Nesta versão, o filé mignon é 
+     substituído por miolo de alcatra, e dois ingredientes especiais fazem toda a diferença: creme de leite e cogumelo-de-paris frescos.",
     "ingredients": [
         "400 g de miolo de alcatra em bifes",
         "200 g de cogumelo-de-paris",
@@ -136,11 +152,14 @@ npm start
     "prepare_mode": [
         "Corte os bifes em tirinhas (de 7 cm x 1 cm), transfira para uma tigela e mantenha em temperatura ambiente - a carne não pode estar gelada na hora de dourar. Enquanto isso, prepare os outros ingredientes.",
         "Numa tábua, corte os cogumelos-de-paris em 3 fatias e reserve (se preferir, você pode usar champignon em conserva, mas o resultado não será o mesmo). Descasque e pique fino a cebola e o alho.",
-        "Leve ao fogo médio uma panela média. Quando aquecer, regue com ½ colher (sopa) de azeite, junte cerca de 1/3 da carne e deixe dourar - se colocar todas as tirinhas ao mesmo tempo, elas vão soltar o próprio líquido e cozinhar no vapor em vez de dourar. Tempere com sal e pimenta-do-reino a gosto e mexa aos poucos para que dourem por igual.",
+        "Leve ao fogo médio uma panela média. Quando aquecer, regue com ½ colher (sopa) de azeite, junte cerca de 1/3 da carne e deixe dourar - se colocar todas as tirinhas ao mesmo tempo, elas vão soltar o próprio líquido e cozinhar no  
+         vapor em vez de dourar. Tempere com sal e pimenta-do-reino a gosto e mexa aos poucos para que dourem por igual.",
         "Transfira as tirinhas douradas para uma tigela. Doure o restante, sempre regando a panela com azeite antes de cada leva.",
-        "Mantenha a panela em fogo médio e regue com mais ½ colher (sopa) de azeite. Adicione a cebola e refogue até murchar por cerca de 3 minutos, raspando bem o fundo da panela - os queimadinhos da carne são essenciais para dar sabor ao preparo. Junte o alho e mexa por apenas 1 minuto para perfumar.",
+        "Mantenha a panela em fogo médio e regue com mais ½ colher (sopa) de azeite. Adicione a cebola e refogue até murchar por cerca de 3 minutos, raspando bem o fundo da panela - os queimadinhos da carne são essenciais para dar sabor 
+         ao preparo. Junte o alho e mexa por apenas 1 minuto para perfumar.",
         "Acrescente o extrato de tomate, o ketchup e mexa bem. Volte a carne dourada à panela, adicione o molho inglês e o conhaque. Junte os cogumelos e misture delicadamente.",
-        "Regue com o creme de leite, misture e deixe cozinhar em fogo médio, mexendo de vez em quando, até o molho engrossar - isso leva cerca de 5 minutos depois que começar a ferver. Desligue o fogo, prove e acerte o sal. Sirva a seguir com arroz branco e batata palha."
+        "Regue com o creme de leite, misture e deixe cozinhar em fogo médio, mexendo de vez em quando, até o molho engrossar - isso leva cerca de 5 minutos depois que começar a ferver. Desligue o fogo, prove e acerte o sal. Sirva a 
+         seguir com arroz branco e batata palha."
     ]
 }
 ```
