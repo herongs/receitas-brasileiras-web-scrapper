@@ -46,7 +46,7 @@ npm start
 |----------------------|-----------------------------------------------------
 | <kbd>GET /busca/{ingredient-name}</kbd>     | retrieves trackbacks of recipes referring to the desired ingredient [response details](#get-busca-ingredientes)
 | <kbd>GET /busca</kbd>     | retrieves all the trackbacks of recipes [request details](#get-busca)
-| <kbd>GET /busca-completa</kbd>     | retrieves all the trackbacks of recipes with more information [request details](#get-busca) 
+| <kbd>GET /busca-completa</kbd>     | retrieves all the trackbacks of recipes with more information [request details](#get-busca-completa) 
 | <kbd>GET /receitas </kbd>     |  retrieves revenue for trackbacks that were collected [request details](#get-receitas) 
 | <kbd>POST /trackbacks </kbd>     |  recovers revenue from the return of collected trackbacks [request details](#post-trackbacks) 
 
@@ -74,7 +74,7 @@ npm start
   },
 ```
 
-<h3 id="get-busca">GET /busca-completa</h3>
+<h3 id="get-busca-completa">GET /busca-completa</h3>
 
 **RESPONSE**
 ```json
